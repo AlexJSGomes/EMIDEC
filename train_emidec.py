@@ -12,6 +12,7 @@ import wandb
 import argparse
 import glob
 
+import monai
 
 torch.set_float32_matmul_precision("high")
 
@@ -38,7 +39,25 @@ if __name__ == "__main__":
     num_classes = 5 if args.task == "train_full" else 4
 
     save_dir = f"./weights_{args.task}/"
-    model = FCDenseNet(in_channels=cfg.DATA.INDIM_MODEL, n_classes=num_classes)
+    
+    # model = FCDenseNet(in_channels=cfg.DATA.INDIM_MODEL, n_classes=num_classes)
+    model = monai.networks.nets.UNet(
+      spatial_dims=2,
+      in_channels=1,
+      out_channels=5,
+      channels=(16, 32, 64, 128, 256),
+      strides=(2, 2, 2, 2),
+      num_res_units=2,
+   )
+
+    #model = nn.Sequential(*list(model.children())[:-2])
+      # add softmax layer to the model
+    model = torch.nn.Sequential(
+        model,
+        torch.nn.Softmax(dim=1),
+    )
+    
+
     cfg.TRAIN.TASK = args.task 
     if args.task== "train_full":
         cfg.DATA.CLASS_WEIGHT = [0.1, 2, 2, 17, 140]  #
