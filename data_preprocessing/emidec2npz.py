@@ -108,7 +108,8 @@ if __name__ == "__main__":
         mask = nib.load(image_path.replace("Images", "Contours")).get_fdata()
         
         combined_mask = mask.copy()
-        combined_mask[mask == 4] = 3
+        combined_mask[mask == 4] = 2 # combine the two classes of pathologic
+        combined_mask[mask == 3] = 2 # combine the two classes of pathologic
         
         image = min_max_normalize(image)
         padded_image, crop_index, padded_index = pad_background(image, dim2pad=args.dim2pad)

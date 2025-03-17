@@ -36,7 +36,7 @@ args = parser.parse_args()
 if __name__ == "__main__":
 
     os.makedirs(f"./weights_{args.task}/", exist_ok=True)
-    num_classes = 5 if args.task == "train_full" else 4
+    num_classes = 5 if args.task == "train_full" else 3 # 4 # musdar o numero de classes
 
     save_dir = f"./weights_{args.task}/"
     
@@ -62,14 +62,14 @@ if __name__ == "__main__":
     if args.task== "train_full":
         cfg.DATA.CLASS_WEIGHT = [0.1, 2, 2, 17, 140]  #
     else:
-        cfg.DATA.CLASS_WEIGHT = [0.1, 2, 2, 10]  #
+        cfg.DATA.CLASS_WEIGHT = [0.1, 2, 2] # , 10]  # mudar os channels
 
     if args.type_train == "train_test":
         # read csv file
         with open("./test.csv", mode="r") as f:
             reader = csv.DictReader(f)
             list_test_subject = [row["path"] for row in reader]
-    elif args.type_train == "train_test_val":
+    elif args.type_train == "train_test_val": # mudar o nome do treino
         with open("./val.csv", mode="r") as f:
             reader = csv.DictReader(f)
             list_test_subject = [row["path"] for row in reader]
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     if cfg.TRAIN.WANDB:
         wandb_logger = WandbLogger(
             project="emidec",
-            name=f"tiramisu_{args.task}",
+            name=f"monai_{args.task}", # mudar o nome no wandb
             resume="allow",
         )
     else:
