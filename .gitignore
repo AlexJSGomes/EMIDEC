@@ -5,7 +5,16 @@ __pycache__/
 emidec*/
 wandb/
 weights_train_combine/*
+weights_train_full/*
 prediction/*
 DICOM/*
 Aditional*/*
 Table*/*
+emidec-dataset-1.0.1/*
+emidec-dataset-1.0.1.zip
+emidec_train_full/*
+emidec_train_combine/*
+Monai/*
+prediction/*
+bbox.py
+

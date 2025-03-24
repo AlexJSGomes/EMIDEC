@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
     os.makedirs(save_path, exist_ok=True)
     for image_path in tqdm(list_train):
-        id_patient = image_path.split("/")[-3]
+        id_patient = image_path.split("\\")[-3]
         image = nib.load(image_path).get_fdata()
         mask = nib.load(image_path.replace("Images", "Contours")).get_fdata()
         
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         writer = csv.writer(f)
         writer.writerow(["id_patient", "path", "num_slices"])
         for image_path in list_val:
-            id_patient = image_path.split("/")[-3]
+            id_patient = image_path.split("\\")[-3]
             image = nib.load(image_path).get_fdata()
             writer.writerow([id_patient, image_path, image.shape[-1]])
 
@@ -143,6 +143,6 @@ if __name__ == "__main__":
         writer = csv.writer(f)
         writer.writerow(["id_patient", "path", "num_slices"])
         for image_path in list_test:
-            id_patient = image_path.split("/")[-3]
+            id_patient = image_path.split("\\")[-3]
             image = nib.load(image_path).get_fdata()
             writer.writerow([id_patient, image_path, image.shape[-1]])

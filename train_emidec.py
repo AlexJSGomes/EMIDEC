@@ -36,7 +36,7 @@ args = parser.parse_args()
 if __name__ == "__main__":
 
     os.makedirs(f"./weights_{args.task}/", exist_ok=True)
-    num_classes = 5 if args.task == "train_full" else 3 # 4 # musdar o numero de classes
+    num_classes = 5 if args.task == "train_full" else  4 # musdar o numero de classes
 
     save_dir = f"./weights_{args.task}/"
     
