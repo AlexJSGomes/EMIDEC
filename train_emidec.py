@@ -12,7 +12,7 @@ import wandb
 import argparse
 import glob
 
-# import monai
+import monai
 
 torch.set_float32_matmul_precision("high")
 
@@ -39,56 +39,21 @@ if __name__ == "__main__":
     num_classes = 5 if args.task == "train_full" else  4 # musdar o numero de classes
 
     save_dir = f"./weights_{args.task}/"
-    
-    from segment2d.medsam import MedSAM
-    import sys
-    sys.path.append(".EMIDEC/MedSAM")
-    from segment_anything import sam_model_registry
-
-    sam_model = sam_model_registry["vit_b"]("work_dir/SAM/sam_vit_b_01ec64.pth")
-
-    medsam = MedSAM(
-    image_encoder=sam_model.image_encoder,
-    mask_decoder=sam_model.mask_decoder,
-    prompt_encoder=sam_model.prompt_encoder,
-    )
-
-    medsam.image_encoder.patch_embed.proj = nn.Conv2d(
-        in_channels=1, 
-        out_channels=1, 
-        kernel_size=(2, 2), 
-        stride=(2, 2)
-    )
-
-    medsam.mask_decoder.conv1 = nn.Conv2d(
-        in_channels=1, 
-        out_channels=1, 
-        kernel_size=(2, 2), 
-        stride=(2, 2)
-    )
-
-    medsam.prompt_encoder.conv = nn.Conv2d(
-        in_channels=1, 
-        out_channels=1, 
-        kernel_size=(2, 2), 
-        stride=(2, 2)
-    )  
-
 
     # model = FCDenseNet(in_channels=cfg.DATA.INDIM_MODEL, n_classes=num_classes)
-    # model = monai.networks.nets.UNet(
-      # spatial_dims=2,
-      # in_channels=1,
-      # out_channels=5,
-      # channels=(16, 32, 64, 128, 256),
-      # strides=(2, 2, 2, 2),
-      # num_res_units=2,
-   # )
+    model = monai.networks.nets.UNet(
+      spatial_dims=2,
+      in_channels=1,
+      out_channels=5,
+      channels=(16, 32, 64, 128, 256),
+      strides=(2, 2, 2, 2),
+      num_res_units=2,
+   )
 
     #model = nn.Sequential(*list(model.children())[:-2])
       # add softmax layer to the model
     model = torch.nn.Sequential(
-        medsam,
+        model,
         torch.nn.Softmax(dim=1),
     )
     

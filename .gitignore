@@ -17,4 +17,3 @@ emidec_train_combine/*
 Monai/*
 prediction/*
 bbox.py
-

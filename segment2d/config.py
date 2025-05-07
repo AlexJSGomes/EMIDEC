@@ -16,11 +16,11 @@ cfg.DATA.INDIM_MODEL = 1
 
 # "active_focal" or "focal_contour" or "active_contour"
 # TverskyLoss,  CrossEntropy, DiceLoss, MSELoss
-cfg.TRAIN.LOSS = "active_focal_contour"
+cfg.TRAIN.LOSS = "DiceLoss"
 
 cfg.TRAIN.NUM_WORKERS = 2
 cfg.TRAIN.PREFETCH_FACTOR = 4
-cfg.TRAIN.LOAD_CHECKPOINT = True
+cfg.TRAIN.LOAD_CHECKPOINT = False
 cfg.TRAIN.SAVE_TOP_K = 1
 cfg.TRAIN.IDX_CHECKPOINT = -1
 cfg.TRAIN.WANDB = True

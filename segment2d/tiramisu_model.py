@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-
 class DenseLayer(nn.Sequential):
     def __init__(self, in_channels, growth_rate):
         super().__init__()

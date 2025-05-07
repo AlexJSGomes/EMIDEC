@@ -1,7 +1,6 @@
 import torch
 import lightning.pytorch as pl
 from segment2d.utils import *
-from segment2d.losses import *
 from segment2d.metrics import *
 from segment2d.config import cfg
 import torch.nn.functional as F
@@ -9,9 +8,8 @@ from kornia.augmentation import *
 from torch.optim import NAdam
 import kornia as K
 import numpy as np
-
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-
+from monai.losses import DiceLoss  # Importação da DiceLoss do MONAI
 
 class Segmenter(pl.LightningModule):
     def __init__(
@@ -47,23 +45,15 @@ class Segmenter(pl.LightningModule):
         self.validation_step_outputs = []
 
     def on_train_start(self):
-        if cfg.TRAIN.LOSS == "active_focal":
-            self.training_loss = ActiveFocalLoss(self.device, self.class_weight, self.num_classes)
-        elif cfg.TRAIN.LOSS == "active_contour":
-            self.training_loss = ActiveContourLoss(self.device, self.class_weight, self.num_classes)
-        elif cfg.TRAIN.LOSS == "CrossEntropy":
-            self.training_loss = CrossEntropy(self.device, self.num_classes)
-        elif cfg.TRAIN.LOSS == "DiceLoss":
-            self.training_loss = DiceLoss(self.device, self.num_classes)
-        elif cfg.TRAIN.LOSS == "TverskyLoss":
-            self.training_loss = TverskyLoss(self.device, self.num_classes)
-        elif cfg.TRAIN.LOSS == "MSELoss":
-            self.training_loss = MSELoss(self.device, self.num_classes)
-        else:
-            self.training_loss = ActiveFocalContourLoss(self.device, self.class_weight, self.num_classes)
+        # Usar DiceLoss do MONAI
+        self.training_loss = DiceLoss(
+            to_onehot_y=True,  # Converte y_true para one-hot
+            softmax=False,     # O modelo já aplica softmax
+            include_background=False,  # Exclui a classe de fundo
+            weight=torch.tensor(self.class_weight[1:], device=self.device) if self.class_weight else None
+        )
 
     def forward(self, x):
-        # return self.model(self.normalize(x))
         return self.model(x)
 
     def predict_patches(self, images):
@@ -99,7 +89,7 @@ class Segmenter(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         image, y_true = batch
         y_pred = self.model(image)
-        loss = self.training_loss(y_true, y_pred)
+        loss = self.training_loss(y_true, y_pred)  # Usar a DiceLoss configurada
         dice_MYO = dice_slice(y_true, y_pred, class_index=2)
         dice_LV = dice_slice(y_true, y_pred, class_index=1)
         dice_MI = dice_slice(y_true, y_pred, class_index=3)
@@ -141,7 +131,6 @@ class Segmenter(pl.LightningModule):
         return metrics
 
     def on_validation_epoch_end(self):
-
         avg_dice_myo = np.stack([x["volume_dice_MYO"] for x in self.validation_step_outputs]).mean()
         avg_dice_lv = np.stack([x["volume_dice_LV"] for x in self.validation_step_outputs]).mean()
         avg_dice_mi = np.stack([x["volume_dice_MI"] for x in self.validation_step_outputs]).mean()
@@ -163,19 +152,15 @@ class Segmenter(pl.LightningModule):
                 "val_dice_MI": avg_dice_mi,
                 "val_dice": avg_dice,
             }
-
         self.log_dict(metrics, prog_bar=True)
-
         return metrics
 
     def configure_optimizers(self):
         optimizer = NAdam(self.parameters(), lr=self.learning_rate)
         scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=self.factor_lr, patience=self.patience_lr)
-
         lr_schedulers = {
             "scheduler": scheduler,
             "monitor": "val_dice",
             "strict": False,
         }
-
         return [optimizer], lr_schedulers

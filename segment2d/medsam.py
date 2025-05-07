@@ -45,3 +45,4 @@ class MedSAM(nn.Module):
             align_corners=False,
         )
         return ori_res_masks
+# %%
